@@ -483,11 +483,66 @@ float euclidean_dist(std::array<uint8_t, 128>& a, std::array<uint8_t, 128>& b)
     return std::sqrt(dist);
 }
 
-std::vector<std::pair<int, int>> find_keypoint_matches(std::vector<Keypoint>& a,
-                                                       std::vector<Keypoint>& b,
-                                                       float thresh_relative,
-                                                       float thresh_absolute)
+
+
+
+double crossCorrelation(const std::array<uint8_t, 128>& descriptor1, const std::array<uint8_t, 128>& descriptor2) {
+    double sum = 0;
+    double descriptor1Mean = 0, descriptor2Mean = 0;
+    double descriptor1Var = 0, descriptor2Var = 0;
+    double descriptor1StdDev = 0, descriptor2StdDev = 0;
+
+    int descriptorLength = descriptor1.size();
+
+    // Calculate mean of descriptor1 and descriptor2
+    for (int i = 0; i < descriptorLength; i++) {
+        descriptor1Mean += descriptor1[i];
+        descriptor2Mean += descriptor2[i];
+    }
+    descriptor1Mean /= descriptorLength;
+    descriptor2Mean /= descriptorLength;
+
+    // Calculate variance and standard deviation of descriptor1 and descriptor2
+    for (int i = 0; i < descriptorLength; i++) {
+        double descriptor1Val = descriptor1[i] - descriptor1Mean;
+        double descriptor2Val = descriptor2[i] - descriptor2Mean;
+        descriptor1Var += descriptor1Val * descriptor1Val;
+        descriptor2Var += descriptor2Val * descriptor2Val;
+    }
+    descriptor1Var /= descriptorLength;
+    descriptor2Var /= descriptorLength;
+    descriptor1StdDev = sqrt(descriptor1Var);
+    descriptor2StdDev = sqrt(descriptor2Var);
+
+    // Calculate cross-correlation
+    for (int i = 0; i < descriptorLength; i++) {
+        double descriptor1Val = descriptor1[i] - descriptor1Mean;
+        double descriptor2Val = descriptor2[i] - descriptor2Mean;
+        sum += descriptor1Val * descriptor2Val;
+    }
+
+    return sum / (descriptor1StdDev * descriptor2StdDev);
+}
+
+double ssd(const std::array<uint8_t, 128>& descriptor1, const std::array<uint8_t, 128>& descriptor2) {
+    double sum = 0;
+
+    for (int i = 0; i < descriptor1.size(); i++) {
+        double diff = descriptor1[i] - descriptor2[i];
+        sum += diff * diff;
+    }
+
+    return sum;
+}
+
+
+
+std::vector<std::pair<int, int>> find_keypoint_matches(const std::vector<Keypoint>& a,
+                                                       const std::vector<Keypoint>& b,
+                                                       double thresh_relative,
+                                                       double thresh_absolute,std::string mode)
 {
+    if(mode=="corr"){
     assert(a.size() >= 2 && b.size() >= 2);
 
     std::vector<std::pair<int, int>> matches;
@@ -495,24 +550,50 @@ std::vector<std::pair<int, int>> find_keypoint_matches(std::vector<Keypoint>& a,
     for (int i = 0; i < a.size(); i++) {
         // find two nearest neighbours in b for current keypoint from a
         int nn1_idx = -1;
-        float nn1_dist = 100000000, nn2_dist = 100000000;
+        double nn1_corr = -1, nn2_corr = -1;
         for (int j = 0; j < b.size(); j++) {
-            float dist = euclidean_dist(a[i].descriptor, b[j].descriptor);
-            if (dist < nn1_dist) {
-                nn2_dist = nn1_dist;
-                nn1_dist = dist;
+            double corr = crossCorrelation(a[i].descriptor, b[j].descriptor);
+            if (corr > nn1_corr) {
+                nn2_corr = nn1_corr;
+                nn1_corr = corr;
                 nn1_idx = j;
-            } else if (nn1_dist <= dist && dist < nn2_dist) {
-                nn2_dist = dist;
+            } else if (nn1_corr >= corr && corr > nn2_corr) {
+                nn2_corr = corr;
             }
         }
-        if (nn1_dist < thresh_relative*nn2_dist && nn1_dist < thresh_absolute) {
+        if (nn1_corr > thresh_relative * nn2_corr && nn1_corr > thresh_absolute) {
             matches.push_back({i, nn1_idx});
         }
     }
     return matches;
-}
+    }
+    else{
 
+        assert(a.size() >= 2 && b.size() >= 2);
+
+            std::vector<std::pair<int, int>> matches;
+
+            for (int i = 0; i < a.size(); i++) {
+                // find two nearest neighbours in b for current keypoint from a
+                int nn1_idx = -1;
+                double nn1_ssd = std::numeric_limits<double>::max(), nn2_ssd = std::numeric_limits<double>::max();
+                for (int j = 0; j < b.size(); j++) {
+                    double ssd_val = ssd(a[i].descriptor, b[j].descriptor);
+                    if (ssd_val < nn1_ssd) {
+                        nn2_ssd = nn1_ssd;
+                        nn1_ssd = ssd_val;
+                        nn1_idx = j;
+                    } else if (nn1_ssd <= ssd_val && ssd_val < nn2_ssd) {
+                        nn2_ssd = ssd_val;
+                    }
+                }
+                if (nn1_ssd < thresh_relative * nn2_ssd && nn1_ssd < thresh_absolute) {
+                    matches.push_back({i, nn1_idx});
+                }
+            }
+            return matches;
+    }
+}
 Image draw_keypoints(const Image& img, const std::vector<Keypoint>& kps)
 {
     Image res(img);
@@ -524,6 +605,9 @@ Image draw_keypoints(const Image& img, const std::vector<Keypoint>& kps)
     }
     return res;
 }
+
+
+
 
 Image draw_matches(const Image& a, const Image& b, std::vector<Keypoint>& kps_a,
                    std::vector<Keypoint>& kps_b, std::vector<std::pair<int, int>> matches)
@@ -552,5 +636,65 @@ Image draw_matches(const Image& a, const Image& b, std::vector<Keypoint>& kps_a,
     }
     return res;
 }
+void draw_rectangle(Image& img, int x, int y, int width, int height, const std::array<uint8_t, 3>& color) {
+    for (int i = -width/2; i <= width/2; i++) {
+        for (int j = -height/2; j <= height/2; j++) {
+            if (i == -width/2 || i == width/2 || j == -height/2 || j == height/2) {
+                img.set_pixel(x + i, y + j, 0, color[0]);
+                img.set_pixel(x + i, y + j, 1, color[1]);
+                img.set_pixel(x + i, y + j, 2, color[2]);
+            }
+        }
+    }
+}
+
+Image draw_matches_rect(const Image& a, const Image& b, std::vector<Keypoint>& kps_a,
+                   std::vector<Keypoint>& kps_b, std::vector<std::pair<int, int>> matches)
+{
+    Image res(a.width+b.width, std::max(a.height, b.height), 3);
+
+    for (int i = 0; i < a.width; i++) {
+        for (int j = 0; j < a.height; j++) {
+            res.set_pixel(i, j, 0, a.get_pixel(i, j, 0));
+            res.set_pixel(i, j, 1, a.get_pixel(i, j, a.channels == 3 ? 1 : 0));
+            res.set_pixel(i, j, 2, a.get_pixel(i, j, a.channels == 3 ? 2 : 0));
+        }
+    }
+    for (int i = 0; i < b.width; i++) {
+        for (int j = 0; j < b.height; j++) {
+            res.set_pixel(a.width+i, j, 0, b.get_pixel(i, j, 0));
+            res.set_pixel(a.width+i, j, 1, b.get_pixel(i, j, b.channels == 3 ? 1 : 0));
+            res.set_pixel(a.width+i, j, 2, b.get_pixel(i, j, b.channels == 3 ? 2 : 0));
+        }
+    }
+
+    std::array<uint8_t, 3> rectangle_color = {255, 0, 0};
+    int rectangle_width = 10;
+    int rectangle_height = 10;
+
+    for (auto& m : matches) {
+        Keypoint& kp_a = kps_a[m.first];
+        Keypoint& kp_b = kps_b[m.second];
+
+        draw_rectangle(res, kp_a.x, kp_a.y, rectangle_width, rectangle_height, rectangle_color);
+        draw_rectangle(res, a.width + kp_b.x, kp_b.y, rectangle_width, rectangle_height, rectangle_color);
+    }
+
+
+
+
+    for (auto& m : matches) {
+        Keypoint& kp_a = kps_a[m.first];
+        Keypoint& kp_b = kps_b[m.second];
+        draw_line(res, kp_a.x, kp_a.y, a.width+kp_b.x, kp_b.y);
+    }
+    return res;
+
+
+
+}
+
 
 } // namespace sift
+
+

@@ -81,15 +81,22 @@ std::vector<Keypoint> find_keypoints_and_descriptors(const Image& img, float sig
                                                      float lambda_ori=LAMBDA_ORI,
                                                      float lambda_desc=LAMBDA_DESC);
 
-std::vector<std::pair<int, int>> find_keypoint_matches(std::vector<Keypoint>& a,
-                                                       std::vector<Keypoint>& b,
-                                                       float thresh_relative=THRESH_RELATIVE,
-                                                       float thresh_absolute=THRESH_ABSOLUTE);
+std::vector<std::pair<int, int>> find_keypoint_matches(const std::vector<Keypoint>& a,
+                                                       const std::vector<Keypoint>& b,
+                                                       double thresh_relative,
+                                                       double thresh_absolute,std::string mode);
 
 Image draw_keypoints(const Image& img, const std::vector<Keypoint>& kps);
 
 Image draw_matches(const Image& a, const Image& b, std::vector<Keypoint>& kps_a,
                    std::vector<Keypoint>& kps_b, std::vector<std::pair<int, int>> matches);
+double crossCorrelation(const std::array<uint8_t, 128>& descriptor1, const std::array<uint8_t, 128>& descriptor2);
+
+void draw_rectangle(Image& img, int x, int y, int width, int height, const std::array<uint8_t, 3>& color);
+Image draw_matches_rect(const Image& a, const Image& b, std::vector<Keypoint>& kps_a,
+                   std::vector<Keypoint>& kps_b, std::vector<std::pair<int, int>> matches);
+double ssd(const std::array<uint8_t, 128>& descriptor1, const std::array<uint8_t, 128>& descriptor2);
+
 
 } // namespace sift
 #endif
