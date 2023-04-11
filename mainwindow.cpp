@@ -30,30 +30,21 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-    QString imagePath;
+    QString imgPath;
 
-    imagePath = QFileDialog::getOpenFileName(this, "Open an Image", "..", "Images (.png.xpm .jpg.bmb)");
+    imgPath = QFileDialog::getOpenFileName(this, "Open an Image", "..", "Images (*.png *.xpm *.jpg *.bmb)");
 
-    // read image using opencv
-    if(imagePath.isEmpty())
+    if(imgPath.isEmpty())
         return;
 
-    Mat image = imread(imagePath.toStdString());
+    Mat i = imread(imgPath.toStdString());
 
-//    std::ios_base::sync_with_stdio(false);
-//    std::cin.tie(NULL);
+    Image image(imgPath.toStdString());
+    image =  image.channels == 1 ? image : rgb_to_grayscale(image);
 
-//    if (argc != 2) {
-//        std::cerr << "Usage: ./find_keypoints input.jpg (or .png)\n";
-//        return 0;
-//    }
-//    Image image(argv[1]);
-//    image =  image.channels == 1 ? image : rgb_to_grayscale(image);
-
-//    std::vector<sift::Keypoint> kps = sift::find_keypoints_and_descriptors(image);
-//    Image result = sift::draw_keypoints(image, kps);
-//    result.save("result.jpg");
-
-//    std::cout << "Found " << kps.size() << " keypoints. Output image is saved as result.jpg\n";
+    std::vector<sift::Keypoint> kps = sift::find_keypoints_and_descriptors(image);
+    Image result = sift::draw_keypoints(image, kps);
+    result.save("result.jpg");
+    std::cout << "Found " << kps.size() << " keypoints. Output image is saved as result.jpg\n";
 }
 

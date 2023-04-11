@@ -2,6 +2,10 @@
 #include <iostream>
 #include <cassert>
 #include <utility>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
+using namespace std;
 
 #include "image.hpp"
 #define STB_IMAGE_IMPLEMENTATION
@@ -127,6 +131,8 @@ bool Image::save(std::string file_path)
         }
     }
     bool success = stbi_write_jpg(file_path.c_str(), width, height, channels, out_data, 100);
+    cv::Mat image = cv::imread(file_path);
+    cv::imshow("My Image", image);
     if (!success)
         std::cerr << "Failed to save image: " << file_path << "\n";
 
