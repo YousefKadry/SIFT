@@ -22,12 +22,19 @@ CONFIG += c++17
 #LIBS += C:\opencv\release\bin\libopencv_imgcodecs470.dll
 #LIBS += C:\opencv\release\bin\libopencv_imgproc470.dll
 
-INCLUDEPATH += C:\openCV\opencv\build\include
-LIBS += C:\openCV\opencv\release\bin\libopencv_calib3d470.dll
-LIBS += C:\openCV\opencv\release\bin\libopencv_core470.dll
-LIBS += C:\openCV\opencv\release\bin\libopencv_highgui470.dll
-LIBS += C:\openCV\opencv\release\bin\libopencv_imgcodecs470.dll
-LIBS += C:\openCV\opencv\release\bin\libopencv_imgproc470.dll
+#INCLUDEPATH += C:\openCV\opencv\build\include
+#LIBS += C:\openCV\opencv\release\bin\libopencv_calib3d470.dll
+#LIBS += C:\openCV\opencv\release\bin\libopencv_core470.dll
+#LIBS += C:\openCV\opencv\release\bin\libopencv_highgui470.dll
+#LIBS += C:\openCV\opencv\release\bin\libopencv_imgcodecs470.dll
+#LIBS += C:\openCV\opencv\release\bin\libopencv_imgproc470.dll
+
+INCLUDEPATH += C:\opencv\build\include
+LIBS += C:\opencv\release\bin\libopencv_calib3d470.dll
+LIBS += C:\opencv\release\bin\libopencv_core470.dll
+LIBS += C:\opencv\release\bin\libopencv_highgui470.dll
+LIBS += C:\opencv\release\bin\libopencv_imgcodecs470.dll
+LIBS += C:\opencv\release\bin\libopencv_imgproc470.dll
 
 
 SOURCES += \
