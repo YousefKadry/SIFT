@@ -38,7 +38,8 @@ void MainWindow::on_pushButton_clicked()
     if(imgPath.isEmpty())
         return;
 
-    Mat i = imread(imgPath.toStdString());
+    Mat img = imread(imgPath.toStdString());
+    showImg(img, ui->imgLbl1, QImage::Format_RGB888, ui->imgLbl1->width(), ui->imgLbl1->height())
 
     Image image(imgPath.toStdString());
     image =  image.channels == 1 ? image : rgb_to_grayscale(image);
@@ -61,7 +62,8 @@ void MainWindow::on_pushButton_2_clicked()
     if(imgPath2.isEmpty())
         return;
 
-    Mat i = imread(imgPath2.toStdString());
+    Mat img = imread(imgPath2.toStdString());
+    showImg(img, ui->imgLbl2, QImage::Format_RGB888, ui->imgLbl1->width(), ui->imgLbl1->height())
 
     Image image2(imgPath2.toStdString());
 
@@ -98,3 +100,12 @@ void MainWindow::on_pushButton_3_clicked()
 //    std::cout << "Found " << match.size() << " feature matches. Output image is saved as result.jpg\n";
 }
 
+void MainWindow::showImg(Mat& img, QLabel* imgLbl, enum QImage::Format imgFormat, int width , int hieght)
+{
+    cvtColor(img, img, COLOR_BGR2RGB);
+    QImage image((uchar*)img.data, img.cols, img.rows, imgFormat);
+    QPixmap pix = QPixmap::fromImage(image);
+//    imgLbl->resize(img.rows, img.cols);
+    imgLbl->setPixmap(pix.scaled(width, hieght, Qt::KeepAspectRatio));
+//    imgLbl->setScaledContents(true);
+}
