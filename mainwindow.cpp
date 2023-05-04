@@ -54,9 +54,6 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_pushButton_2_clicked()
 {
 
-
-
-
     imgPath2 = QFileDialog::getOpenFileName(this, "Open an Image", "..", "Images (*.png *.xpm *.jpg *.bmb)");
 
     if(imgPath2.isEmpty())
@@ -81,7 +78,6 @@ void MainWindow::on_pushButton_3_clicked()
 {
 //    Image a(argv[1]), b(argv[2]);
 
-
     Image image(imgPath.toStdString());
     Image image2(imgPath2.toStdString());
 
@@ -92,8 +88,6 @@ void MainWindow::on_pushButton_3_clicked()
 
     std::vector<std::pair<int, int>> match= find_keypoint_matches(kps,kps2,10000,10000.9,"SSD");
     Image result = sift::draw_matches_rect(image, image2, kps, kps2, match);
-
-
 
     result.save("result.jpg");
 

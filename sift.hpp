@@ -1,4 +1,3 @@
-
 #ifndef SIFT_H
 #define SIFT_H
 
@@ -7,6 +6,8 @@
 #include <cstdint>
 
 #include "image.hpp"
+
+using namespace std;
 
 namespace sift {
 
@@ -62,18 +63,18 @@ ScaleSpacePyramid generate_gaussian_pyramid(const Image& img, float sigma_min=SI
 
 ScaleSpacePyramid generate_dog_pyramid(const ScaleSpacePyramid& img_pyramid);
 
-std::vector<Keypoint> find_keypoints(const ScaleSpacePyramid& dog_pyramid,
+vector<Keypoint> find_keypoints(const ScaleSpacePyramid& dog_pyramid,
                                      float contrast_thresh=C_DOG, float edge_thresh=C_EDGE);
 
 ScaleSpacePyramid generate_gradient_pyramid(const ScaleSpacePyramid& pyramid);
 
-std::vector<float> find_keypoint_orientations(Keypoint& kp, const ScaleSpacePyramid& grad_pyramid,
+vector<float> find_keypoint_orientations(Keypoint& kp, const ScaleSpacePyramid& grad_pyramid,
                                               float lambda_ori=LAMBDA_ORI, float lambda_desc=LAMBDA_DESC);
 
 void compute_keypoint_descriptor(Keypoint& kp, float theta, const ScaleSpacePyramid& grad_pyramid,
                                  float lambda_desc=LAMBDA_DESC);
 
-std::vector<Keypoint> find_keypoints_and_descriptors(const Image& img, float sigma_min=SIGMA_MIN,
+vector<Keypoint> find_keypoints_and_descriptors(const Image& img, float sigma_min=SIGMA_MIN,
                                                      int num_octaves=N_OCT, 
                                                      int scales_per_octave=N_SPO, 
                                                      float contrast_thresh=C_DOG,
@@ -81,21 +82,23 @@ std::vector<Keypoint> find_keypoints_and_descriptors(const Image& img, float sig
                                                      float lambda_ori=LAMBDA_ORI,
                                                      float lambda_desc=LAMBDA_DESC);
 
-std::vector<std::pair<int, int>> find_keypoint_matches(const std::vector<Keypoint>& a,
-                                                       const std::vector<Keypoint>& b,
+vector<pair<int, int>> find_keypoint_matches(const vector<Keypoint>& a,
+                                                       const vector<Keypoint>& b,
                                                        double thresh_relative,
-                                                       double thresh_absolute,std::string mode);
+                                                       double thresh_absolute, string mode);
 
-Image draw_keypoints(const Image& img, const std::vector<Keypoint>& kps);
+Image draw_keypoints(const Image& img, const vector<Keypoint>& kps);
 
-Image draw_matches(const Image& a, const Image& b, std::vector<Keypoint>& kps_a,
-                   std::vector<Keypoint>& kps_b, std::vector<std::pair<int, int>> matches);
-double crossCorrelation(const std::array<uint8_t, 128>& descriptor1, const std::array<uint8_t, 128>& descriptor2);
+Image draw_matches(const Image& a, const Image& b, vector<Keypoint>& kps_a,
+                   vector<Keypoint>& kps_b, vector<pair<int, int>> matches);
+double crossCorrelation(const array<uint8_t, 128>& descriptor1, const array<uint8_t, 128>& descriptor2);
 
-void draw_rectangle(Image& img, int x, int y, int width, int height, const std::array<uint8_t, 3>& color);
-Image draw_matches_rect(const Image& a, const Image& b, std::vector<Keypoint>& kps_a,
-                   std::vector<Keypoint>& kps_b, std::vector<std::pair<int, int>> matches);
-double ssd(const std::array<uint8_t, 128>& descriptor1, const std::array<uint8_t, 128>& descriptor2);
+void draw_rectangle(Image& img, int x, int y, int width, int height, const array<uint8_t, 3>& color);
+
+Image draw_matches_rect(const Image& a, const Image& b, vector<Keypoint>& kps_a,
+                   vector<Keypoint>& kps_b, vector<pair<int, int>> matches);
+
+double ssd(const array<uint8_t, 128>& descriptor1, const array<uint8_t, 128>& descriptor2);
 
 
 } // namespace sift
